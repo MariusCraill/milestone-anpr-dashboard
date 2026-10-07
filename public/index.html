@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yard Traffic Dashboard</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%232a78d6'/%3E%3Cpath d='M3 10h10M4 10l1-3h6l1 3' stroke='white' fill='none' stroke-width='1.4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 15h18M5 15l1.6-5h10.8L19 15M7 18.5v-3.5m10 3.5v-3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1>Yard Traffic</h1>
+      <span id="demo-badge" class="chip warn" hidden>Demo data</span>
+    </div>
+    <nav id="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button role="tab" data-tab="turnaround" aria-selected="false">Turnaround</button>
+      <button role="tab" data-tab="cameras" aria-selected="false">Cameras</button>
+      <button role="tab" data-tab="vehicles" aria-selected="false">Vehicles</button>
+    </nav>
+    <div class="right">
+      <span id="live" class="chip" title="Live connection"><i class="dot"></i><span>Connecting…</span></span>
+      <button id="theme" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="tab-overview" class="tab" role="tabpanel"></section>
+    <section id="tab-turnaround" class="tab" role="tabpanel" hidden></section>
+    <section id="tab-cameras" class="tab" role="tabpanel" hidden></section>
+    <section id="tab-vehicles" class="tab" role="tabpanel" hidden></section>
+  </main>
+  <footer>Updated <span id="updated">—</span> · Times shown in browser local time</footer>
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
