@@ -1,0 +1,62 @@
+# Copy to config.yaml, edit, then:  platewatch check && platewatch run
+# ${VAR} and ${VAR:-default} are replaced from environment variables so secrets stay out of this file.
+
+cameras:
+  # 1) Any RTSP/HTTP stream you already have a URL for
+  - id: gate-in
+    name: Main Gate - IN
+    role: entry                      # optional hint: entry | exit | area (passed to the dashboard / webhooks)
+    source: rtsp://user:${CAM1_PASSWORD}@192.168.1.64:554/Streaming/Channels/101
+    fps: 4                           # frames analysed per second; 3-6 is plenty for plates
+    roi: [0.0, 0.35, 1.0, 1.0]       # optional: only look at this part of the picture (x1,y1,x2,y2 as 0-1)
+
+  # 2) Any ONVIF camera: the stream URL is looked up for you (run `platewatch discover` first)
+  - id: gate-out
+    name: Main Gate - OUT
+    role: exit
+    onvif: {host: 192.168.1.65, port: 80, username: admin, password: "${CAM2_PASSWORD}"}
+
+  # 3) A video file, for testing without a camera
+  # - id: demo
+  #   name: Demo clip
+  #   source: ./samples/gate.mp4
+  #   loop: true
+
+recognition:
+  min_confidence: 70                 # a sighting must average at least this OCR confidence (0-100)
+  min_reads: 2                       # frames that must agree on the plate; raise to cut false alarms
+  settle_seconds: 2                  # no read for this long = vehicle has passed, report it
+  cooldown_seconds: 60               # same plate on same camera is not re-reported within this time
+  # plate_regex: '^[A-Z]{2}[0-9]{2}[A-Z]{2}GP$'     # optional: only accept plates of your country's format
+  # detector_model: yolo-v9-t-384-license-plate-end2end   # '-s-608-' is more accurate, slower; '-t-256-' is faster
+  # ocr_model: cct-xs-v2-global-model                      # 'cct-s-v2-global-model' is more accurate, slower
+
+sinks:
+  # Push to the bundled dashboard (dashboard/), Milestone-side scripts, n8n, Home Assistant, anything that takes JSON
+  - type: webhook
+    url: http://localhost:3100/api/ingest
+    api_key: ${INGEST_API_KEY:-change-me}
+    include_snapshot: false
+
+  # Telegram group / channel / private chat. See docs/TELEGRAM.md
+  - type: telegram
+    token: ${TELEGRAM_BOT_TOKEN}
+    chat_ids: [-1001234567890]       # find yours with: platewatch telegram-setup
+    send_photo: true
+    only_watchlist: false            # true = alert channel: only plates added with /watch are sent
+    # cameras: [gate-in]             # optional: only these cameras post to this chat
+    # message_thread_id: 12          # optional: post into one topic of a forum-style group
+
+  # Append-only log, one JSON object per line
+  - type: jsonl
+    path: data/plates.jsonl
+
+bot:
+  enabled: true
+  allowed_chats: [-1001234567890]    # chats allowed to use bot commands; everyone can use /id to find theirs
+  admins: []                         # your own Telegram user id(s), for commanding the bot in a private chat
+
+storage:
+  db: data/platewatch.db
+  snapshots_dir: data/snapshots      # set to null to not keep pictures
+  retention_days: 30                 # plates are personal data: keep only what you need

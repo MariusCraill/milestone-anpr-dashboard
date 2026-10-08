@@ -92,3 +92,15 @@ test('parseIngest handles generic, wrapped, nested and Milestone-alarm payloads'
   assert.equal(parseIngest('nope', 't').length, 0);
   assert.equal(parseIngest({ plate: 'A1', cameraId: 'c', snapshotUrl: 'javascript:alert(1)' }, 't')[0].snapshotUrl, null);
 });
+
+test('role hint from the sender allocates a new camera once; dashboard role wins afterwards', () => {
+  const db = openDb(':memory:');
+  const e = new Engine(db, { debounceMs: 30_000, reentryGraceMs: 5 * MIN, minConfidence: 0 });
+  const r = (cameraId: string, roleHint: 'entry' | 'exit' | 'area', ts: number) =>
+    e.processRead({ plate: 'AB12CDGP', plateRaw: 'x', cameraId, ts, confidence: 90, source: 't', roleHint });
+  assert.equal(r('g', 'entry', T0).outcome, 'entry');
+  e.setCameraRole('g', 'exit', null);                       // operator re-allocates in the dashboard
+  assert.equal(r('g', 'entry', T0 + 10 * MIN).outcome, 'exit');   // hint no longer applies
+  assert.equal(r('bay', 'area', T0 + 20 * MIN).outcome, 'entry_inferred');
+  assert.equal(e.getCamera('bay')!.zone, 'bay');
+});

@@ -70,7 +70,11 @@ export class Engine extends EventEmitter {
       return { outcome: 'low_confidence' };
     }
 
-    const cam = this.getCamera(read.cameraId) ?? this.upsertCamera(read.cameraId, read.cameraName || read.cameraId);
+    let cam = this.getCamera(read.cameraId) ?? this.upsertCamera(read.cameraId, read.cameraName || read.cameraId);
+    // A sender that knows the camera's job (PlateWatch config) can pre-allocate it; a role set in the dashboard always wins.
+    if (cam.role === 'unassigned' && read.roleHint) {
+      cam = this.setCameraRole(cam.id, read.roleHint, read.roleHint === 'area' ? cam.name : null);
+    }
     const ts = Math.round(read.ts);
     const record = (outcome: ReadResult['outcome'], visitId?: number) => {
       this.db.prepare(`

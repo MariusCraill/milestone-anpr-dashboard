@@ -81,6 +81,7 @@ export function parseIngest(body: unknown, source: string, now = Date.now()): Pl
       confidence: parseConfidence(pick(o, CONF_KEYS)),
       snapshotUrl: typeof snap === 'string' && /^https?:\/\//i.test(snap) ? snap : null,
       source,
+      roleHint: ['entry', 'exit', 'area'].includes(String(o.role)) ? (o.role as PlateRead['roleHint']) : undefined,
     });
   }
   return out;

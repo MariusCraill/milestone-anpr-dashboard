@@ -20,6 +20,7 @@ export interface PlateRead {
   confidence: number | null;
   snapshotUrl?: string | null;
   source: string;
+  roleHint?: 'entry' | 'exit' | 'area';   // e.g. from PlateWatch; only used while the camera is still unassigned
 }
 
 export type ReadOutcome =
